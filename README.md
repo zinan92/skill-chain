@@ -65,6 +65,18 @@ lobster run $SCO_HOME/core/smoke-basic.lobster
 └─────────────────────────────────────────┘
 ```
 
+## Methodology
+
+skill-chain adopts the [superpowers](https://github.com/obra/superpowers) software development methodology (MIT License) for its cognitive layer — triage, planning, execution, review, and verification disciplines.
+
+What skill-chain adds on top: **runtime enforcement**. The methodology's principles are encoded as guards (Python), not just prompts. A model cannot rationalize its way past a guard.
+
+| Layer | Source | Role |
+|-------|--------|------|
+| Cognitive (skills) | superpowers methodology | How to think about development |
+| Control (pipeline) | Lobster runtime | Orchestration and sequencing |
+| Enforcement (guards) | skill-chain native | Deterministic quality gates |
+
 ## Key Concepts
 
 - **Pipeline** = the big SOP (Standard Operating Procedure)

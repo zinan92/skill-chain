@@ -3,8 +3,22 @@
 ## Replace a Skill
 
 1. Create your custom skill in `skills/<name>/SKILL.md`
-2. Follow the same input/output schema
+2. Follow the same input/output schema (see Output Contract section in each SKILL.md)
 3. Re-run install to update symlinks
+
+## Upgrade Skills from Upstream (superpowers)
+
+Core skills are adapted from [obra/superpowers](https://github.com/obra/superpowers) (MIT License). To sync with upstream:
+
+1. Compare upstream SKILL.md with your local version
+2. Each skill has an HTML comment noting what was modified locally
+3. Merge upstream changes while preserving:
+   - YAML frontmatter (`name`, `description`)
+   - Output Contract section (guard.py compatibility)
+   - Local runtime references (no `superpowers:` prefix)
+   - Neutral wording (no personal references)
+4. Run `bash tests/run-tests.sh` to verify guard contracts still pass
+5. Run `bash scripts/doctor.sh` to verify manifest consistency
 
 ## Add a Guard Check
 

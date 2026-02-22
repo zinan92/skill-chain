@@ -2,23 +2,26 @@
 
 ## Three-Layer Design
 
-### 1. Control Flow Layer (Pipeline)
+### 1. Cognitive Layer (Skills — superpowers methodology)
+- Each skill is a self-contained prompt in `skills/<name>/SKILL.md`
+- Methodology adapted from [obra/superpowers](https://github.com/obra/superpowers) (MIT License)
+- Skills encode development discipline: triage, planning, execution, review, verification
+- Skills receive context via stdin and produce structured JSON output
+- Each core skill documents its guard-compatible output contract
+- Skills are composable and replaceable — swap methodology without changing enforcement
+
+### 2. Control Layer (Pipeline — Lobster runtime)
 - `core/dev-pipeline.lobster` — orchestrates the full development cycle
 - Lobster runtime executes steps serially
 - Each step invokes a Claude Code skill via `claude -p`
 - Step outputs piped through guards before next step
 
-### 2. Execution Layer (Skills)
-- Each skill is a self-contained prompt in `skills/<name>/SKILL.md`
-- Skills receive context via stdin (previous step's structured output)
-- Skills produce structured JSON output (--json-schema enforced)
-- Skills are composable and replaceable
-
-### 3. Guard Layer (Enforcement)
+### 3. Enforcement Layer (Guards — skill-chain native)
 - `core/helpers/guard.py` — validates structured output at each transition
 - Guards are **code, not prompts** — they cannot be talked out of
-- Guard checks: schema validation, field presence, value ranges
+- Guard checks: schema validation, field presence, value ranges, consistency
 - `core/helpers/router.py` — conditional routing (Light skips plan, Medium/Heavy plans)
+- Dual-stage review validation: spec compliance + code quality consistency checks
 
 ## Pipeline Flow
 

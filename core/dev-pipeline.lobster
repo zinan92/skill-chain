@@ -12,11 +12,12 @@ env:
   GUARD: "${SCO_HOME}/core/helpers/guard.py"
   EXTRACT: "${SCO_HOME}/core/helpers/extract_structured.py"
   EXTRACT_REVIEW: "${SCO_HOME}/core/helpers/extract_review.py"
+  SC_WORKFLOW_DIR: "/tmp/skill-chain-workflow-$$"
 
 steps:
-  # Step 1: init — write task to isolated temp dir (PID-based to avoid concurrency conflicts)
+  # Step 1: init — write task to workflow dir (SC_WORKFLOW_DIR is PID-scoped for concurrency safety)
   - id: init
-    command: "WFDIR=/tmp/skill-chain-$$-$(date +%s) && rm -rf \"$WFDIR\" && mkdir -p \"$WFDIR\" && python3 -c \"import sys,json; task=sys.stdin.read().strip(); open('${WFDIR}/task.txt','w').write(task); print(json.dumps({'task':task,'repo':'${repo}','workdir':'${WFDIR}'}))\""
+    command: "rm -rf \"$SC_WORKFLOW_DIR\" && mkdir -p \"$SC_WORKFLOW_DIR\" && python3 -c \"import sys,json,os; task=sys.stdin.read().strip(); wfdir=os.environ['SC_WORKFLOW_DIR']; open(os.path.join(wfdir,'task.txt'),'w').write(task); print(json.dumps({'task':task,'repo':'${repo}','workdir':wfdir}))\""
     stdin: "${task}"
 
   # Step 2: /triage skill → guard(triage)

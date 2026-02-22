@@ -3,6 +3,11 @@ name: verification-before-completion
 description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
 ---
 
+<!-- Methodology: Adapted from obra/superpowers (MIT License)
+     Local modifications: JSON output contract for guard.py compatibility,
+     neutral wording, runtime integration with Lobster pipeline
+     Last synced: superpowers v1.0 (2026-02) -->
+
 # Verification Before Completion
 
 ## Overview
@@ -107,14 +112,41 @@ Skip any step = lying, not verifying
 ❌ Trust agent report
 ```
 
+## Output Contract (guard.py)
+
+The verify step output must include these fields for `guard --check verify` to pass:
+
+**Required fields:**
+```json
+{
+  "verified": true,
+  "evidence": "string (10+ chars — actual command output, not a claim)"
+}
+```
+
+**Recommended fields** (strengthen the evidence):
+```json
+{
+  "tests_command": "string (exact command run)",
+  "tests_output": "string (raw output)",
+  "tests_passed": true
+}
+```
+
+**Guard behavior:**
+- `verified` must be boolean `true` (not string "true", not "yes", not 1)
+- `evidence` must be 10+ characters of actual verification output
+- Missing fields → guard fails → pipeline stops
+- This is the last gate before `pre_commit` — no bypass path exists
+
 ## Why This Matters
 
-From 24 failure memories:
-- your human partner said "I don't believe you" - trust broken
-- Undefined functions shipped - would crash
-- Missing requirements shipped - incomplete features
+From documented failure patterns:
+- Trust broken when completion claims were false
+- Undefined functions shipped — would crash in production
+- Missing requirements shipped — incomplete features
 - Time wasted on false completion → redirect → rework
-- Violates: "Honesty is a core value. If you lie, you'll be replaced."
+- Verification is a core value — claims without evidence undermine the entire pipeline
 
 ## When To Apply
 

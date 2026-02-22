@@ -3,6 +3,11 @@ name: writing-plans
 description: Use when you have a spec or requirements for a multi-step task, before touching code
 ---
 
+<!-- Methodology: Adapted from obra/superpowers (MIT License)
+     Local modifications: Single Source of Truth principle, Large Plan Mode,
+     JSON output contract compatibility, runtime integration with Lobster pipeline
+     Last synced: superpowers v1.0 (2026-02) -->
+
 # Writing Plans
 
 ## Overview
@@ -33,7 +38,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -130,6 +135,25 @@ Example:
       - Step 4: Run test → verify PASS
       - Step 5: Commit
 
+## Output Contract (guard.py)
+
+The route step validates triage + plan presence. While writing-plans itself does not have a dedicated guard check, its output feeds into the route guard (`guard --check route`):
+
+**Route guard expects:**
+```json
+{
+  "triage": { "weight": "Medium|Heavy", "...": "..." },
+  "plan": "string (non-null for Medium/Heavy tasks)"
+}
+```
+
+**Guard behavior:**
+- If triage weight is `Medium` or `Heavy`, `plan` must be non-null
+- If `plan` is null for non-Light tasks → guard fails → pipeline stops
+- Light tasks skip writing-plans entirely (router.py passes triage through)
+
+**Plan content itself is not schema-validated by guard** — the plan is a markdown document consumed by the implement step. Quality is enforced by review (spec compliance check against the plan).
+
 ## Red Flags — STOP
 
 - Skipping writing-plans for a Medium or Heavy task
@@ -164,10 +188,10 @@ After saving the plan, offer execution choice:
 **Which approach?"**
 
 **If Subagent-Driven chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
+- **REQUIRED SUB-SKILL:** Use subagent-driven-development
 - Stay in this session
 - Fresh subagent per task + code review
 
 **If Parallel Session chosen:**
 - Guide them to open new session in worktree
-- **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+- **REQUIRED SUB-SKILL:** New session uses executing-plans

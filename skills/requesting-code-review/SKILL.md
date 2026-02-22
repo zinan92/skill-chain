@@ -3,9 +3,14 @@ name: requesting-code-review
 description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
 ---
 
+<!-- Methodology: Adapted from obra/superpowers (MIT License)
+     Local modifications: JSON output contract for guard.py compatibility,
+     dual-stage review support, runtime integration with Lobster pipeline
+     Last synced: superpowers v1.0 (2026-02) -->
+
 # Requesting Code Review
 
-Dispatch superpowers:code-reviewer subagent to catch issues before they cascade.
+Dispatch a code-reviewer subagent to catch issues before they cascade.
 
 **Core principle:** Review early, review often.
 
@@ -31,7 +36,7 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 **2. Dispatch code-reviewer subagent:**
 
-Use Task tool with superpowers:code-reviewer type, fill template at `code-reviewer.md`
+Use Task tool with code-reviewer subagent, fill template at `code-reviewer.md`
 
 **Placeholders:**
 - `{WHAT_WAS_IMPLEMENTED}` - What you just built
@@ -56,7 +61,7 @@ You: Let me request code review before proceeding.
 BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
 HEAD_SHA=$(git rev-parse HEAD)
 
-[Dispatch superpowers:code-reviewer subagent]
+[Dispatch code-reviewer subagent]
   WHAT_WAS_IMPLEMENTED: Verification and repair functions for conversation index
   PLAN_OR_REQUIREMENTS: Task 2 from docs/plans/deployment-plan.md
   BASE_SHA: a7981ec
@@ -113,5 +118,35 @@ You: [Fix progress indicators]
 | "Review takes too long, I'll lose momentum" | Shipping broken code costs more momentum than a 10-minute review. Slow is smooth, smooth is fast. |
 
 **Process failure = stop and fix process.** Do not work around a broken process — fix it.
+
+## Output Contract (guard.py)
+
+The review step output must include these fields for `guard --check review` to pass:
+
+**Legacy format (single-stage):**
+```json
+{
+  "verdict": "approved|with_fixes|rejected",
+  "summary": "string",
+  "issues": [
+    {"severity": "critical|high|medium|low", "file": "string", "line": "number", "description": "string"}
+  ]
+}
+```
+
+**Dual-stage format (v1.1+):**
+```json
+{
+  "spec_review": {"verdict": "pass|fail", "issues": []},
+  "quality_review": {"verdict": "pass|fail", "issues": []},
+  "overall_verdict": "approved|with_fixes|rejected"
+}
+```
+
+**Guard behavior:**
+- Only `verdict == "approved"` (legacy) or `overall_verdict == "approved"` (dual-stage) passes
+- `with_fixes` and `rejected` both block the pipeline
+- Dual-stage: `spec_review.verdict == "fail"` + `overall_verdict == "approved"` → contradiction → blocked
+- Guard auto-detects format (backward compatible)
 
 See template at: requesting-code-review/code-reviewer.md

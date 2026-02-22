@@ -3,6 +3,11 @@ name: triage
 description: Use when you have a documented task with clear intention and need to classify it (type + weight) before any decomposition or coding — the CTO function that decides HOW to execute
 ---
 
+<!-- Methodology: Adapted from obra/superpowers (MIT License)
+     Local modifications: JSON output contract for guard.py compatibility,
+     neutral wording, runtime integration with Lobster pipeline
+     Last synced: superpowers v1.0 (2026-02) -->
+
 # Triage — Task Classification & Execution Strategy
 
 The CTO function. Before any code is written or any plan is made, every task must be triaged.
@@ -175,6 +180,37 @@ Triage Approved
 | "It's a bug fix, always Light" | Bug fixes that touch shared code, cross modules, or need schema changes are Medium. Classify, don't assume. |
 | "Let's just start and see" | That's the definition of uncontrolled scope. Triage prevents exactly this. |
 | "The reviewer will just approve anyway" | The approval step forces you to articulate your reasoning. That's the value. |
+
+## Output Contract (guard.py)
+
+The triage step output must include these fields for `guard --check triage` to pass:
+
+**Required fields:**
+```json
+{
+  "type": "Feature|Bug|Refactor|Integration|Migration|Spike|Config",
+  "weight": "Light|Medium|Heavy",
+  "summary": "string (5+ chars)",
+  "routing": "mvu-execution|writing-plans"
+}
+```
+
+**Recommended fields** (used by downstream steps):
+```json
+{
+  "affected_areas": ["string"],
+  "hard_signals": {
+    "lines_changed": "number",
+    "files_touched": "number",
+    "modules_crossed": "number"
+  }
+}
+```
+
+**Guard behavior:**
+- `weight` must be exactly one of `Light`, `Medium`, `Heavy` (case-sensitive)
+- `summary` must be 5+ characters (no empty strings)
+- Missing required fields → guard fails → pipeline stops
 
 ## Integration
 

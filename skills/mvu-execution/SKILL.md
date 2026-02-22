@@ -3,6 +3,11 @@ name: mvu-execution
 description: Use when executing a single development unit (100-300 lines changed) that needs guaranteed reliable output — the atomic execution protocol with developer, reviewer, and escalation path to Codex CLI then human
 ---
 
+<!-- Methodology: Adapted from obra/superpowers (MIT License)
+     Local modifications: JSON output contract for guard.py compatibility,
+     dual-stage review (v1.1), escalation path, runtime integration with Lobster pipeline
+     Last synced: superpowers v1.0 (2026-02) -->
+
 # MVU Execution — Minimum Viable Unit Protocol
 
 The atomic unit of reliable software delivery. One unit in, verified deliverable out.
@@ -202,7 +207,7 @@ There is no "partial pass". Spec compliance is binary.
 - If `spec_review.verdict == "fail"` → skip Stage 2, send issues back to developer
 - If `spec_review.verdict == "pass"` → proceed to Stage 2
 
-**Stage 2 — Code Quality Review** (use `./reviewer-prompt.md` or dispatch `superpowers:code-reviewer`)
+**Stage 2 — Code Quality Review** (use `./reviewer-prompt.md` or dispatch `code-reviewer`)
 - Only runs after Stage 1 passes
 - Reviewer checks: code style, patterns, edge cases, security, maintainability
 - Reviewer produces: `quality_review.verdict` = `pass` or `fail` with issues list
@@ -262,6 +267,33 @@ Backward compatibility: The legacy single-field format (`{"verdict": "approved"}
 - `./reviewer-prompt.md` — Dispatch Stage 2 reviewer (code quality) or combined review for simple MVUs
 - `./escalation-prompt.md` — Dispatch Codex CLI for stuck units
 
+## Output Contract (guard.py)
+
+The implement step output must include these fields for `guard --check implement` to pass:
+
+**Required fields:**
+```json
+{
+  "summary": "string (what was built)",
+  "files_changed": ["string (file paths)"],
+  "files_created": ["string (file paths)"]
+}
+```
+
+**Recommended fields:**
+```json
+{
+  "tests_run": true,
+  "tests_passed": true,
+  "self_review": "string (findings from self-review)"
+}
+```
+
+**Guard behavior:**
+- `files_changed` OR `files_created` must be non-empty (something must have changed)
+- `summary` must be present and non-empty
+- Missing required fields → guard fails → pipeline stops
+
 ## Red Flags — STOP
 
 - Marking MVU complete without fresh test run
@@ -291,15 +323,15 @@ Backward compatibility: The legacy single-field format (`{"verdict": "approved"}
 
 **This skill is the atomic building block. Other skills compose it:**
 
-- **superpowers:subagent-driven-development** — uses MVU Execution for each task in a plan
-- **superpowers:executing-plans** — uses MVU Execution for each batch item
+- **subagent-driven-development** — uses MVU Execution for each task in a plan
+- **executing-plans** — uses MVU Execution for each batch item
 - **Standalone** — for Light tasks from meta-framework Triage (entire task = 1 MVU)
 
 **This skill requires:**
 
-- **superpowers:test-driven-development** — Developer must follow TDD within the MVU
-- **superpowers:verification-before-completion** — evidence before any completion claim
-- **superpowers:requesting-code-review** — review template for Reviewer dispatch
+- **test-driven-development** — Developer must follow TDD within the MVU
+- **verification-before-completion** — evidence before any completion claim
+- **requesting-code-review** — review template for Reviewer dispatch
 
 **Escalation requires:**
 

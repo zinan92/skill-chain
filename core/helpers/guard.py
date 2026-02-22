@@ -5,8 +5,14 @@ Schema guarantees format; guards guarantee meaning.
 
 Usage:
   python3 guard.py --check <check_name>
-  Reads JSON from stdin, validates, writes to stdout AND /tmp/workflow/<check_name>.json.
+  Reads JSON from stdin, validates, writes to stdout AND $SC_WORKFLOW_DIR/<check_name>.json.
   Exits 0 on pass, 1 on fail (halts pipeline).
+
+Environment:
+  SC_WORKFLOW_DIR — checkpoint directory for cross-step validation.
+                    Defaults to /tmp/skill-chain-workflow.
+                    For concurrent runs, set to a unique value per run
+                    (e.g., SC_WORKFLOW_DIR=/tmp/sc-$$ lobster run ...).
 
 Checks:
   triage     — valid type + weight + summary present
@@ -21,7 +27,7 @@ import json
 import os
 import argparse
 
-WORKFLOW_DIR = "/tmp/workflow"
+WORKFLOW_DIR = os.environ.get("SC_WORKFLOW_DIR", "/tmp/skill-chain-workflow")
 
 
 def save_checkpoint(name, data):

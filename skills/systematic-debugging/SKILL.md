@@ -176,7 +176,7 @@ You MUST complete each phase before proceeding to the next.
    - Automated test if possible
    - One-off test script if no framework
    - MUST have before fixing
-   - Use the `superpowers:test-driven-development` skill for writing proper failing tests
+   - Use the `test-driven-development` skill for writing proper failing tests
 
 2. **Implement Single Fix**
    - Address the root cause identified
@@ -208,7 +208,7 @@ You MUST complete each phase before proceeding to the next.
    - Are we "sticking with it through sheer inertia"?
    - Should we refactor architecture vs. continue fixing symptoms?
 
-   **Discuss with your human partner before attempting more fixes**
+   **Discuss with the human before attempting more fixes**
 
    This is NOT a failed hypothesis - this is a wrong architecture.
 
@@ -231,14 +231,14 @@ If you catch yourself thinking:
 
 **If 3+ fixes failed:** Question the architecture (see Phase 4.5)
 
-## your human partner's Signals You're Doing It Wrong
+## Signals You're Doing It Wrong
 
-**Watch for these redirections:**
-- "Is that not happening?" - You assumed without verifying
-- "Will it show us...?" - You should have added evidence gathering
-- "Stop guessing" - You're proposing fixes without understanding
-- "Ultrathink this" - Question fundamentals, not just symptoms
-- "We're stuck?" (frustrated) - Your approach isn't working
+**Watch for these redirections from your human partner:**
+- "Is that not happening?" — You assumed without verifying
+- "Will it show us...?" — You should have added evidence gathering
+- "Stop guessing" — You're proposing fixes without understanding
+- "Think deeper" — Question fundamentals, not just symptoms
+- "We're stuck?" (frustrated) — Your approach isn't working
 
 **When you see these:** STOP. Return to Phase 1.
 
@@ -284,8 +284,8 @@ These techniques are part of systematic debugging and available in this director
 - **`condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
 
 **Related skills:**
-- **superpowers:test-driven-development** - For creating failing test case (Phase 4, Step 1)
-- **superpowers:verification-before-completion** - Verify fix worked before claiming success
+- **test-driven-development** - For creating failing test case (Phase 4, Step 1)
+- **verification-before-completion** - Verify fix worked before claiming success
 
 ## Real-World Impact
 
