@@ -89,17 +89,29 @@ You: [Fix progress indicators]
 - Review before merge
 - Review when stuck
 
-## Red Flags
+## Red Flags — STOP
 
-**Never:**
-- Skip review because "it's simple"
-- Ignore Critical issues
-- Proceed with unfixed Important issues
-- Argue with valid technical feedback
+- Skipping review because the change is "simple" or "small"
+- Not waiting for review to complete before proceeding to the next task
+- Ignoring Critical or Important issues from the reviewer
+- Merging without any review at all (self-review alone is not sufficient)
+
+**ALL of these mean: STOP and fix the process.**
 
 **If reviewer wrong:**
 - Push back with technical reasoning
 - Show code/tests that prove it works
 - Request clarification
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "The tests pass so it's fine" | Tests verify behavior. Review verifies design, readability, and edge cases tests don't cover. Both are needed. |
+| "It's just a refactor" | Refactors can introduce subtle bugs that tests miss. Review catches structural regressions. |
+| "I'll get review on the next PR" | Compounding unreviewed changes makes every future review harder and less effective. Review now. |
+| "Review takes too long, I'll lose momentum" | Shipping broken code costs more momentum than a 10-minute review. Slow is smooth, smooth is fast. |
+
+**Process failure = stop and fix process.** Do not work around a broken process — fix it.
 
 See template at: requesting-code-review/code-reviewer.md

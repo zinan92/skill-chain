@@ -1,0 +1,12 @@
+{
+  "type": "feat",
+  "weight": "Medium",
+  "summary": "Add validation to user input form",
+  "affected_areas": ["frontend", "validation"],
+  "hard_signals": {
+    "lines_changed": "50-100",
+    "files_touched": "3",
+    "modules_crossed": "1"
+  },
+  "routing": "standard"
+}

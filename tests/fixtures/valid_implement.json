@@ -1,0 +1,9 @@
+{
+  "summary": "Added input validation to user form with schema-based checks",
+  "type": "feat",
+  "files_changed": ["src/form.py", "src/validators.py"],
+  "files_created": ["tests/test_form.py"],
+  "tests_run": true,
+  "tests_passed": true,
+  "self_review": "Changes look correct and tests pass"
+}

@@ -1,0 +1,14 @@
+{
+  "verdict": "with_fixes",
+  "spec_compliance": "Mostly compliant",
+  "code_quality": "Minor issues found",
+  "issues": [
+    {
+      "severity": "medium",
+      "file": "src/form.py",
+      "line": 15,
+      "description": "Missing error message for empty input"
+    }
+  ],
+  "summary": "Needs minor fixes before merge"
+}

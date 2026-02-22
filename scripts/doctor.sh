@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # doctor.sh — Verify skill-chain dependencies and installation health
-# Usage: ./doctor.sh [--quiet]
+# Usage: ./doctor.sh [--quiet] [--with-tests]
 set -euo pipefail
 
 SCO_HOME="${SCO_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
 QUIET=false
-[[ "${1:-}" == "--quiet" ]] && QUIET=true
+WITH_TESTS=false
+for arg in "$@"; do
+    case "$arg" in
+        --quiet) QUIET=true ;;
+        --with-tests) WITH_TESTS=true ;;
+    esac
+done
 
 # Colors
 RED='\033[0;31m'
@@ -146,6 +152,25 @@ print(total)
     fi
 fi
 
+# ── Manifest Consistency ──────────────────────────────────
+$QUIET || echo ""
+info "Manifest consistency (frontmatter sync)"
+
+if command -v python3 &>/dev/null && [ -f "${SCO_HOME}/scripts/skill-discovery.py" ]; then
+    DISCOVERY_OUTPUT=$(python3 "${SCO_HOME}/scripts/skill-discovery.py" --check 2>&1) || true
+    if echo "$DISCOVERY_OUTPUT" | grep -q "^OK:"; then
+        pass "$DISCOVERY_OUTPUT"
+    else
+        DISCOVERY_ISSUES=$(echo "$DISCOVERY_OUTPUT" | grep -c "^  -" 2>/dev/null || true)
+        DISCOVERY_ISSUES=${DISCOVERY_ISSUES:-0}
+        warn "Manifest/disk mismatch: ${DISCOVERY_ISSUES} issue(s) (run skill-discovery.py --check for details)"
+        WARNINGS=$((WARNINGS + DISCOVERY_ISSUES))
+    fi
+else
+    warn "skill-discovery.py: skipped (python3 or script not available)"
+    WARNINGS=$((WARNINGS + 1))
+fi
+
 # ── Audit Check ────────────────────────────────────────────
 $QUIET || echo ""
 info "Security audit"
@@ -168,6 +193,27 @@ else
         else
             pass "Audit clean"
         fi
+    fi
+fi
+
+# ── Runtime Tests ─────────────────────────────────────────
+if $WITH_TESTS; then
+    $QUIET || echo ""
+    info "Runtime regression tests"
+
+    if [ -x "${SCO_HOME}/tests/run-tests.sh" ]; then
+        TEST_OUTPUT=$("${SCO_HOME}/tests/run-tests.sh" 2>&1) || true
+        if echo "$TEST_OUTPUT" | grep -q "All.*passed"; then
+            TEST_COUNT=$(echo "$TEST_OUTPUT" | grep -oE '[0-9]+ test files' | head -1 || echo "all")
+            pass "Runtime tests: ${TEST_COUNT} passed"
+        else
+            FAILED=$(echo "$TEST_OUTPUT" | grep -oE '[0-9]+/[0-9]+ test files failed' | head -1 || echo "some tests failed")
+            fail "Runtime tests: ${FAILED}"
+            ERRORS=$((ERRORS + 1))
+        fi
+    else
+        warn "tests/run-tests.sh: not found or not executable"
+        WARNINGS=$((WARNINGS + 1))
     fi
 fi
 

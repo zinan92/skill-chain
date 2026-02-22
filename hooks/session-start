@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# hooks/session-start — Bootstrap skill-chain context into Claude Code sessions
+# Called by Claude Code SessionStart hook
+set -euo pipefail
+
+# Resolve SCO_HOME: env var > script location fallback
+if [ -z "${SCO_HOME:-}" ]; then
+    SCO_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+
+SKILL_FILE="${SCO_HOME}/skills/using-skill-chain/SKILL.md"
+
+# Graceful degradation: exit silently if skill file missing
+if [ ! -f "$SKILL_FILE" ]; then
+    exit 0
+fi
+
+cat "$SKILL_FILE"

@@ -118,14 +118,116 @@ digraph mvu_protocol {
 - Developer MUST: write tests first, implement, run tests, self-review, commit
 - Developer CAN: ask questions before starting (answer them before proceeding)
 
-**Step 2 — Dispatch Reviewer** (use `./reviewer-prompt.md`)
-- Reviewer gets: task spec, developer's report, access to code
-- Reviewer MUST: read actual code (not trust developer's report), verify spec compliance AND code quality in one pass
-- Reviewer produces: approved / issues list with file:line references
+**Step 2 — Dual-Stage Review**
+
+Review is split into two stages. Stage 1 must pass before Stage 2 runs.
+
+**Stage 1 — Spec Compliance Review**
+
+Dispatch a reviewer subagent with the following prompt:
+
+```
+You are the Stage 1 reviewer. Your only job is spec compliance.
+Do NOT review code quality, style, or patterns — that is Stage 2's job.
+
+## Task Spec (what was requested)
+
+[FULL TEXT of task spec / plan requirements]
+
+## Success Criteria
+
+[Explicit list of what "done" means — from spec or plan]
+
+## Developer's Report
+
+[Paste developer's implementation report here]
+
+## CRITICAL: Do Not Trust the Report
+
+The developer's report may be incomplete, inaccurate, or optimistic.
+You MUST verify everything by reading actual code.
+
+DO NOT: take developer's word, trust claims about completeness, accept their
+interpretation of requirements, skip reading code because the report sounds thorough.
+
+DO: read every changed file, compare implementation to requirements line by line,
+check for missing pieces, look for unplanned additions.
+
+## Your Checklist
+
+A. Missing Requirements
+   For EACH requirement in the spec/plan:
+   - Is it implemented? (read the code, do not trust the report)
+   - Is it implemented correctly per the spec's intent?
+   - Are there sub-requirements or edge cases specified that were skipped?
+
+B. Unplanned Additions
+   For EACH file changed or created:
+   - Was this file change required by the spec?
+   - Does it contain functionality not requested?
+   Over-building is a spec violation. If the spec says "add X", adding X+Y is wrong.
+
+C. Misinterpretations
+   - Did the developer interpret any requirement differently than intended?
+   - Did they solve the right problem but in the wrong way?
+
+D. Test Coverage of Spec
+   - Do the tests verify the spec requirements (not just implementation details)?
+   - Is each requirement covered by at least one test?
+
+## Output Format
+
+{
+  "spec_review": {
+    "verdict": "pass|fail",
+    "issues": [
+      {
+        "type": "missing|extra|misinterpretation|undertested",
+        "severity": "critical|high|important|minor",
+        "description": "...",
+        "spec_reference": "...",
+        "file": "...",
+        "line": null
+      }
+    ],
+    "summary": "..."
+  }
+}
+
+verdict: "pass" — every spec requirement implemented and verified. Issues list empty.
+verdict: "fail" — one or more requirements missing, extra, or misinterpreted. Issues non-empty.
+There is no "partial pass". Spec compliance is binary.
+```
+
+- If `spec_review.verdict == "fail"` → skip Stage 2, send issues back to developer
+- If `spec_review.verdict == "pass"` → proceed to Stage 2
+
+**Stage 2 — Code Quality Review** (use `./reviewer-prompt.md` or dispatch `superpowers:code-reviewer`)
+- Only runs after Stage 1 passes
+- Reviewer checks: code style, patterns, edge cases, security, maintainability
+- Reviewer produces: `quality_review.verdict` = `pass` or `fail` with issues list
+
+**Combined output format:**
+```json
+{
+  "spec_review": {"verdict": "pass|fail", "issues": []},
+  "quality_review": {"verdict": "pass|fail", "issues": []},
+  "overall_verdict": "approved|with_fixes|rejected"
+}
+```
+
+Guard rules enforced by `core/helpers/guard.py`:
+- `spec_review.verdict == "fail"` AND `overall_verdict == "approved"` → BLOCKED (contradiction)
+- Stage 2 ran when Stage 1 failed → BLOCKED (fix spec first)
+- `quality_review.verdict == "fail"` AND `overall_verdict == "approved"` → BLOCKED (contradiction)
+- Only `overall_verdict == "approved"` passes the guard
+
+Backward compatibility: The legacy single-field format (`{"verdict": "approved"}`) is still accepted. The guard auto-detects the format.
 
 **Step 3 — Developer responds to review**
 - If review approved → MVU Complete ✅
-- If issues found → Developer fixes, runs tests, reports back
+- If spec issues found → Developer fixes spec compliance first, then re-submit for Stage 1
+- If quality issues found → Developer fixes quality issues, re-submit for Stage 2 only
 - Developer CAN disagree with review feedback (with technical reasoning)
 
 **Step 4 — Count roundtrips**
@@ -156,7 +258,8 @@ digraph mvu_protocol {
 ## Prompt Templates
 
 - `./developer-prompt.md` — Dispatch developer subagent
-- `./reviewer-prompt.md` — Dispatch reviewer subagent (combined spec + quality)
+- Stage 1 spec compliance reviewer — inline above (Step 2, Stage 1)
+- `./reviewer-prompt.md` — Dispatch Stage 2 reviewer (code quality) or combined review for simple MVUs
 - `./escalation-prompt.md` — Dispatch Codex CLI for stuck units
 
 ## Red Flags — STOP

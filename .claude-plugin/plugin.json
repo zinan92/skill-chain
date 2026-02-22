@@ -1,0 +1,96 @@
+{
+  "$schema": "https://skill-chain.dev/schemas/plugin-v1.json",
+  "name": "skill-chain",
+  "version": "1.1.0",
+  "description": "Opinionated software development pipeline with guard-enforced quality gates",
+  "author": "skill-chain contributors",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/skill-chain",
+  "engines": {
+    "claude-code": ">=1.0.0",
+    "openclaw": ">=0.1.0"
+  },
+  "dependencies": {
+    "required": {
+      "node": ">=18.0.0",
+      "python3": ">=3.11.0",
+      "claude": ">=1.0.0"
+    },
+    "optional": {
+      "lobster": ">=0.1.0",
+      "openclaw": ">=0.1.0",
+      "codex": ">=0.1.0"
+    }
+  },
+  "environment": {
+    "SCO_HOME": {
+      "description": "Root directory of skill-chain installation",
+      "default": "~/skill-chain",
+      "required": true
+    },
+    "TARGET_REPO": {
+      "description": "Project repository to run pipeline against",
+      "required": false
+    }
+  },
+  "skills": {
+    "required": [
+      "triage",
+      "writing-plans",
+      "mvu-execution",
+      "requesting-code-review",
+      "verification-before-completion"
+    ],
+    "transitive": [
+      "test-driven-development",
+      "executing-plans",
+      "subagent-driven-development",
+      "systematic-debugging",
+      "finishing-a-development-branch",
+      "using-git-worktrees",
+      "receiving-code-review",
+      "brainstorming",
+      "dispatching-parallel-agents",
+      "writing-skills",
+      "find-skills",
+      "using-superpowers"
+    ],
+    "optional": [
+      "d3-viz",
+      "fastapi-async-patterns",
+      "fastapi-python",
+      "nextjs-app-router-patterns",
+      "tailwindcss-advanced-layouts",
+      "ui-ux-pro-max",
+      "risk-management"
+    ]
+  },
+  "adapters": [
+    "claude-code",
+    "openclaw"
+  ],
+  "commands": [
+    "sc-brainstorm",
+    "sc-write-plan",
+    "sc-execute-plan"
+  ],
+  "agents": [
+    "code-reviewer"
+  ],
+  "pipelines": {
+    "dev-pipeline": "core/dev-pipeline.lobster",
+    "smoke-basic": "core/smoke-basic.lobster",
+    "smoke-test": "core/smoke-test.lobster"
+  },
+  "hooks": {
+    "session-start": {
+      "optional": true,
+      "default": false
+    }
+  },
+  "install": {
+    "script": "scripts/install.sh",
+    "doctor": "scripts/doctor.sh",
+    "uninstall": "scripts/uninstall.sh"
+  }
+}

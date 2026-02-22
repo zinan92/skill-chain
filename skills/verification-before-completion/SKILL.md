@@ -71,6 +71,8 @@ Skip any step = lying, not verifying
 | "Agent said success" | Verify independently |
 | "I'm tired" | Exhaustion ≠ excuse |
 | "Partial check is enough" | Partial proves nothing |
+| "I just ran it a minute ago" | State changes between runs. "A minute ago" is not "now". Run it again. |
+| "Nothing else changed" | You don't know that until you verify. Run the check. |
 | "Different words so rule doesn't apply" | Spirit over letter |
 
 ## Key Patterns

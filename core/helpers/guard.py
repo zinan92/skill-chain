@@ -12,7 +12,7 @@ Checks:
   triage     — valid type + weight + summary present
   route      — triage present; plan present if weight != Light
   implement  — files_changed non-empty, summary present
-  review     — verdict is "approved" (semantic, not just schema)
+  review     — verdict is "approved" (supports legacy and dual-stage formats)
   verify     — verified == true AND evidence non-empty
   pre_commit — aggregate: reads all saved outputs, enforces triple gate
 """
@@ -111,8 +111,13 @@ def check_implement(data):
     return data
 
 
-def check_review(data):
-    """Validate review verdict is 'approved'. Schema guarantees format; this checks meaning."""
+def _is_dual_stage_format(data):
+    """Detect whether data uses the dual-stage review format."""
+    return "spec_review" in data or "quality_review" in data or "overall_verdict" in data
+
+
+def _check_review_legacy(data):
+    """Validate legacy single-stage review: verdict must be 'approved'."""
     verdict = data.get("verdict")
 
     if verdict == "rejected":
@@ -133,8 +138,111 @@ def check_review(data):
     if verdict != "approved":
         fail(f"Review verdict unknown: {verdict!r}. Expected 'approved'.", data)
 
-    save_checkpoint("review", data)
     return data
+
+
+def _validate_sub_review(name, review):
+    """Validate a sub-review (spec_review or quality_review) has valid structure."""
+    if not isinstance(review, dict):
+        fail(f"{name} must be an object, got {type(review).__name__}.")
+
+    verdict = review.get("verdict")
+    if verdict not in ("pass", "fail"):
+        fail(f"{name}.verdict must be 'pass' or 'fail', got {verdict!r}.")
+
+    issues = review.get("issues")
+    if issues is not None and not isinstance(issues, list):
+        fail(f"{name}.issues must be a list if present, got {type(issues).__name__}.")
+
+    return verdict
+
+
+def _check_review_dual_stage(data):
+    """Validate dual-stage review: spec compliance + code quality."""
+    spec_review = data.get("spec_review")
+    quality_review = data.get("quality_review")
+    overall_verdict = data.get("overall_verdict")
+
+    # Validate overall_verdict
+    if overall_verdict not in ("approved", "with_fixes", "rejected"):
+        fail(
+            f"overall_verdict must be 'approved', 'with_fixes', or 'rejected', "
+            f"got {overall_verdict!r}.",
+            data
+        )
+
+    # Validate spec_review (required)
+    if not spec_review:
+        fail("Dual-stage review missing 'spec_review'.", data)
+    spec_verdict = _validate_sub_review("spec_review", spec_review)
+
+    # Validate quality_review (optional — may be skipped if spec fails)
+    quality_verdict = None
+    if quality_review:
+        quality_verdict = _validate_sub_review("quality_review", quality_review)
+
+    # Consistency checks
+    if spec_verdict == "fail" and overall_verdict == "approved":
+        fail(
+            "Contradiction: spec_review.verdict is 'fail' but overall_verdict is 'approved'. "
+            "Spec compliance is required for approval.",
+            data
+        )
+
+    if spec_verdict == "fail" and quality_verdict is not None:
+        fail(
+            "Stage 1 (spec) failed but Stage 2 (quality) was still run. "
+            "Fix spec issues first — skip Stage 2 on spec failure.",
+            data
+        )
+
+    if quality_verdict == "fail" and overall_verdict == "approved":
+        fail(
+            "Contradiction: quality_review.verdict is 'fail' but overall_verdict is 'approved'.",
+            data
+        )
+
+    # Final gate: only 'approved' passes
+    if overall_verdict == "rejected":
+        spec_issues = spec_review.get("issues", []) if spec_review else []
+        quality_issues = quality_review.get("issues", []) if quality_review else []
+        all_issues = spec_issues + quality_issues
+        critical = [i for i in all_issues if isinstance(i, dict) and i.get("severity") in ("critical", "high")]
+        fail(
+            f"Review verdict: rejected. {len(critical)} critical/high issues found.",
+            {"overall_verdict": overall_verdict, "issues": critical}
+        )
+
+    if overall_verdict == "with_fixes":
+        spec_issues = spec_review.get("issues", []) if spec_review else []
+        quality_issues = quality_review.get("issues", []) if quality_review else []
+        all_issues = spec_issues + quality_issues
+        fail(
+            f"Review verdict: with_fixes. Issues must be resolved before commit.",
+            {"overall_verdict": overall_verdict, "issues": all_issues}
+        )
+
+    return data
+
+
+def check_review(data):
+    """Validate review verdict. Supports both legacy and dual-stage formats.
+
+    Legacy format:
+        {"verdict": "approved|with_fixes|rejected", "issues": [...]}
+
+    Dual-stage format:
+        {"spec_review": {"verdict": "pass|fail", "issues": [...]},
+         "quality_review": {"verdict": "pass|fail", "issues": [...]},
+         "overall_verdict": "approved|with_fixes|rejected"}
+    """
+    if _is_dual_stage_format(data):
+        result = _check_review_dual_stage(data)
+    else:
+        result = _check_review_legacy(data)
+
+    save_checkpoint("review", data)
+    return result
 
 
 def check_verify(data):
@@ -175,9 +283,14 @@ def check_pre_commit(data):
 
     failures = []
 
-    # Gate 1: Review verdict
+    # Gate 1: Review verdict (supports both legacy and dual-stage formats)
     if not review:
         failures.append("No review checkpoint found — review step may have been skipped.")
+    elif _is_dual_stage_format(review):
+        if review.get("overall_verdict") != "approved":
+            failures.append(
+                f"Review overall_verdict is {review.get('overall_verdict')!r}, not 'approved'."
+            )
     elif review.get("verdict") != "approved":
         failures.append(f"Review verdict is {review.get('verdict')!r}, not 'approved'.")
 

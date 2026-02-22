@@ -1,0 +1,14 @@
+{
+  "verdict": "rejected",
+  "spec_compliance": "Missing input sanitization",
+  "code_quality": "SQL injection vulnerability found",
+  "issues": [
+    {
+      "severity": "critical",
+      "file": "src/db.py",
+      "line": 42,
+      "description": "SQL injection via unsanitized user input"
+    }
+  ],
+  "summary": "Critical security issue must be fixed"
+}

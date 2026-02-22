@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$SCO_HOME/hooks/session-start"
+          }
+        ],
+        "description": "Bootstrap skill-chain context into new sessions"
+      }
+    ]
+  }
+}

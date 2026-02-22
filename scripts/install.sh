@@ -8,6 +8,8 @@
 #   --skills-dir PATH      Override skills install target (default: ~/.claude/skills)
 #   --install-deps         Auto-install missing dependencies
 #   --skip-doctor          Skip dependency version check
+#   --with-hooks           Enable SessionStart hook (default: disabled)
+#   --no-hooks             Disable SessionStart hook (skip prompt)
 #   -h, --help             Show this help
 set -euo pipefail
 
@@ -17,6 +19,7 @@ PLATFORM="claude-code"
 DRY_RUN=false
 INSTALL_DEPS=false
 SKIP_DOCTOR=false
+INSTALL_HOOKS=""  # empty = prompt, "yes" = enable, "no" = skip
 SKILLS_PREFIX="${HOME}/.claude/skills"
 MANIFEST_FILE="${SCO_HOME}/manifest/install-manifest.json"
 
@@ -41,8 +44,10 @@ while [[ $# -gt 0 ]]; do
         --skills-dir)    SKILLS_PREFIX="$2"; shift 2 ;;
         --install-deps)  INSTALL_DEPS=true; shift ;;
         --skip-doctor)   SKIP_DOCTOR=true; shift ;;
+        --with-hooks)    INSTALL_HOOKS="yes"; shift ;;
+        --no-hooks)      INSTALL_HOOKS="no"; shift ;;
         -h|--help)
-            head -12 "$0" | tail -10
+            head -14 "$0" | tail -12
             exit 0
             ;;
         *) err "Unknown option: $1"; exit 1 ;;
@@ -256,7 +261,74 @@ if [[ "$PLATFORM" == "openclaw" || "$PLATFORM" == "all" ]]; then
     echo ""
 fi
 
-# ── Step 7: Merge adapter manifest and write ───────────────
+# ── Step 7: Optional SessionStart hook ────────────────────
+if [[ "$PLATFORM" == "claude-code" || "$PLATFORM" == "all" ]]; then
+    ENABLE_HOOK=false
+
+    if [ "$INSTALL_HOOKS" = "yes" ]; then
+        ENABLE_HOOK=true
+    elif [ "$INSTALL_HOOKS" = "no" ]; then
+        ENABLE_HOOK=false
+    elif ! $DRY_RUN; then
+        # Interactive prompt — default NO
+        echo ""
+        echo -n "Enable SessionStart hook? (injects skill-chain context into new sessions) [y/N] "
+        read -r hook_answer </dev/tty 2>/dev/null || hook_answer=""
+        case "$hook_answer" in
+            [yY]|[yY][eE][sS]) ENABLE_HOOK=true ;;
+            *) ENABLE_HOOK=false ;;
+        esac
+    fi
+
+    if $ENABLE_HOOK; then
+        info "Installing SessionStart hook..."
+        HOOKS_SRC="${SCO_HOME}/hooks/hooks.json"
+        SETTINGS_FILE="${HOME}/.claude/settings.json"
+
+        if [ ! -f "$HOOKS_SRC" ]; then
+            warn "hooks.json not found at ${HOOKS_SRC}, skipping"
+        elif $DRY_RUN; then
+            dry "Would merge SessionStart hook into ${SETTINGS_FILE}"
+        else
+            # Merge hook config into Claude Code settings
+            if [ -f "$SETTINGS_FILE" ]; then
+                python3 -c "
+import json, sys
+
+with open('${SETTINGS_FILE}') as f:
+    settings = json.load(f)
+
+with open('${HOOKS_SRC}') as f:
+    hook_config = json.load(f)
+
+hooks = settings.setdefault('hooks', {})
+session_hooks = hooks.setdefault('SessionStart', [])
+
+# Check if already installed (avoid duplicates)
+already = any('session-start' in (h.get('hooks', [{}])[0].get('command', '') if h.get('hooks') else '') for h in session_hooks)
+if not already:
+    session_hooks.extend(hook_config['hooks']['SessionStart'])
+
+with open('${SETTINGS_FILE}', 'w') as f:
+    json.dump(settings, f, indent=2)
+    f.write('\n')
+"
+                ok "SessionStart hook merged into ${SETTINGS_FILE}"
+            else
+                # No existing settings — create with just the hook
+                mkdir -p "$(dirname "$SETTINGS_FILE")"
+                cp "$HOOKS_SRC" "$SETTINGS_FILE"
+                ok "Created ${SETTINGS_FILE} with SessionStart hook"
+            fi
+            manifest_add "hook" "$HOOKS_SRC" "$SETTINGS_FILE"
+        fi
+    else
+        info "SessionStart hook skipped (default off)"
+    fi
+    echo ""
+fi
+
+# ── Step 8: Merge adapter manifest and write ───────────────
 # Merge adapter items into main manifest
 if [ -f "$ADAPTER_MANIFEST" ]; then
     adapter_items=$(cat "$ADAPTER_MANIFEST")

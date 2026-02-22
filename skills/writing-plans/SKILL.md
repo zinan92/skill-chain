@@ -94,6 +94,63 @@ git commit -m "feat: add specific feature"
 - Reference relevant skills with @ syntax
 - DRY, YAGNI, TDD, frequent commits
 
+## Plan = Single Source of Truth
+
+Once a plan is written and approved:
+- All implementation follows the plan exactly
+- Changes to scope require plan amendment (not ad-hoc decisions)
+- Review checks implementation against the plan (not against reviewer's preferences)
+- The plan is the contract between developer and reviewer
+
+**If reality diverges from the plan:** update the plan first, get approval, then continue. Never silently deviate.
+
+## Large Plan Mode (Heavy Tasks)
+
+For Heavy tasks, structure the plan hierarchically:
+
+### Epics
+High-level capabilities (1-3 per plan). Each epic contains:
+
+### Stories
+User-facing increments within an epic. Each story contains:
+
+### Tasks
+Technical work items within a story. Each task contains:
+
+### Steps
+Atomic actions within a task (the familiar 5-step TDD cycle).
+
+Example:
+- Epic: "User Authentication System"
+  - Story: "Email/Password Login"
+    - Task: "Create login endpoint"
+      - Step 1: Write failing test for POST /auth/login
+      - Step 2: Run test → verify FAIL
+      - Step 3: Write minimal implementation
+      - Step 4: Run test → verify PASS
+      - Step 5: Commit
+
+## Red Flags — STOP
+
+- Skipping writing-plans for a Medium or Heavy task
+- Plan that contains no test steps (every task must have red-green verification)
+- Plan that references vague paths ("somewhere in src/") instead of exact file paths
+- Plan with no success criteria per task
+- Modifying scope during execution without amending the plan first
+
+**ALL of these mean: STOP and fix the process.**
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "Planning slows me down" | Unplanned Medium/Heavy tasks take 2-3x longer due to rework. The plan saves time. |
+| "I'll figure it out as I go" | That's called hacking, not engineering. Plans exist to prevent dead ends. |
+| "The plan is in my head" | If it's not written down, it can't be reviewed, followed, or verified against. Write it down. |
+| "This task is too fluid for a plan" | Then it's a Spike (from Triage). Spikes have plans too — they just plan what to investigate. |
+
+**Process failure = stop and fix process.** Do not work around a broken process — fix it.
+
 ## Execution Handoff
 
 After saving the plan, offer execution choice:

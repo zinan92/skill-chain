@@ -1,0 +1,12 @@
+{
+  "type": "feat",
+  "weight": "Heavy",
+  "summary": "Redesign authentication module with OAuth2 support",
+  "affected_areas": ["auth", "api", "database"],
+  "hard_signals": {
+    "lines_changed": "500+",
+    "files_touched": "15",
+    "modules_crossed": "4"
+  },
+  "routing": "standard"
+}

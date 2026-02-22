@@ -1,0 +1,12 @@
+{
+  "type": "fix",
+  "weight": "Light",
+  "summary": "Fix typo in README.md",
+  "affected_areas": ["docs"],
+  "hard_signals": {
+    "lines_changed": "1",
+    "files_touched": "1",
+    "modules_crossed": "0"
+  },
+  "routing": "light"
+}
