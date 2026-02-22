@@ -154,13 +154,15 @@ AUDIT_OUTPUT=$(python3 "${SCO_HOME}/scripts/package-audit.py" 2>&1) || true
 if echo "$AUDIT_OUTPUT" | grep -q "PASS:"; then
     pass "No hardcoded paths or secrets found"
 else
-    AUDIT_ISSUES=$(echo "$AUDIT_OUTPUT" | grep -c "POSSIBLE_SECRET" || echo "0")
-    if [ "$AUDIT_ISSUES" -gt 0 ]; then
+    AUDIT_ISSUES=$(echo "$AUDIT_OUTPUT" | grep -c "POSSIBLE_SECRET" 2>/dev/null || true)
+    AUDIT_ISSUES=${AUDIT_ISSUES:-0}
+    if [ "$AUDIT_ISSUES" -gt 0 ] 2>/dev/null; then
         fail "Found ${AUDIT_ISSUES} potential secrets!"
         ERRORS=$((ERRORS + 1))
     else
-        HARDCODED=$(echo "$AUDIT_OUTPUT" | grep -c "HARDCODED_PATH" || echo "0")
-        if [ "$HARDCODED" -gt 0 ]; then
+        HARDCODED=$(echo "$AUDIT_OUTPUT" | grep -c "HARDCODED_PATH" 2>/dev/null || true)
+        HARDCODED=${HARDCODED:-0}
+        if [ "$HARDCODED" -gt 0 ] 2>/dev/null; then
             warn "Found ${HARDCODED} hardcoded paths (run package-audit.py for details)"
             WARNINGS=$((WARNINGS + 1))
         else
