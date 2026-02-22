@@ -32,6 +32,7 @@ PERSONAL_INFO = [
 TEMPLATE_VARS = {'${SCO_HOME}', '${HOME}', '${TARGET_REPO}', '$SCO_HOME', '$HOME', '$TARGET_REPO'}
 
 SKIP_DIRS = {'.git', 'node_modules', '__pycache__', '.venv', 'my'}
+SKIP_FILES = {'install-manifest.json'}  # Runtime artifact, contains local paths by design
 SCAN_EXTENSIONS = {'.py', '.sh', '.md', '.json', '.yml', '.yaml', '.lobster', '.tmpl', '.txt', '.toml'}
 
 
@@ -138,6 +139,8 @@ def main():
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
 
         for filename in filenames:
+            if filename in SKIP_FILES:
+                continue
             filepath = Path(dirpath) / filename
             if filepath.suffix in SCAN_EXTENSIONS:
                 issues = scan_file(filepath)

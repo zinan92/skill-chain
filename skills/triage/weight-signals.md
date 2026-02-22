@@ -91,4 +91,4 @@ Weight = Heavy?  → P&A required. Define Ports first.
 | Fix AKShare API response parsing | Bug Fix | Light | No | MVU |
 | Upgrade SQLAlchemy 1.x → 2.x | Migration | Medium | Yes (old→new) | Plan + MVUs |
 | Research WebSocket vs SSE for live data | Spike | Light | No | MVU (output = document) |
-| Split ashare into market modules | Refactor | Heavy | Yes (shared port) | P&A + Plan + MVUs |
+| Split monolith into market modules | Refactor | Heavy | Yes (shared port) | P&A + Plan + MVUs |
