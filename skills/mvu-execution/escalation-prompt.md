@@ -52,7 +52,7 @@ Round 2: [Reviewer found Z still present, Developer attempted W but failed]
 If Codex CLI also fails:
 
 ```
-Report to human (Park):
+Report to human:
 
 ## MVU Stuck: [task name]
 

@@ -97,7 +97,7 @@ Task tool (general-purpose):
 
     ### 7. Risks & Concerns
 
-    [Anything Park should know before approving — edge cases, unknowns, blockers]
+    [Anything the reviewer should know before approving — edge cases, unknowns, blockers]
     ```
 
     ## Rules

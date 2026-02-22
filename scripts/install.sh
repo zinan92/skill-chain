@@ -5,7 +5,7 @@
 # Options:
 #   --dry-run              Show what would be installed without making changes
 #   --platform TYPE        Install for: claude-code | openclaw | all (default: claude-code)
-#   --prefix PATH          Override install prefix (advanced)
+#   --skills-dir PATH      Override skills install target (default: ~/.claude/skills)
 #   --install-deps         Auto-install missing dependencies
 #   --skip-doctor          Skip dependency version check
 #   -h, --help             Show this help
@@ -17,7 +17,7 @@ PLATFORM="claude-code"
 DRY_RUN=false
 INSTALL_DEPS=false
 SKIP_DOCTOR=false
-PREFIX=""
+SKILLS_PREFIX="${HOME}/.claude/skills"
 MANIFEST_FILE="${SCO_HOME}/manifest/install-manifest.json"
 
 # ── Colors ──────────────────────────────────────────────────
@@ -38,7 +38,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run)       DRY_RUN=true; shift ;;
         --platform)      PLATFORM="$2"; shift 2 ;;
-        --prefix)        PREFIX="$2"; shift 2 ;;
+        --skills-dir)    SKILLS_PREFIX="$2"; shift 2 ;;
         --install-deps)  INSTALL_DEPS=true; shift ;;
         --skip-doctor)   SKIP_DOCTOR=true; shift ;;
         -h|--help)
@@ -169,7 +169,7 @@ echo ""
 info "Installing skills..."
 SKILLS_MANIFEST="${SCO_HOME}/manifest/skills-manifest.json"
 SKILLS_DIR="${SCO_HOME}/skills"
-TARGET_SKILLS_DIR="${HOME}/.claude/skills"
+TARGET_SKILLS_DIR="${SKILLS_PREFIX}"
 
 if [ -f "$SKILLS_MANIFEST" ]; then
     # Install required + transitive skills
@@ -221,6 +221,11 @@ done
 echo ""
 
 # ── Step 6: Platform-specific install ──────────────────────
+# Adapter manifest sidecar — adapters append here, main installer merges
+ADAPTER_MANIFEST="${SCO_HOME}/manifest/.adapter-manifest-tmp.json"
+echo '[]' > "$ADAPTER_MANIFEST"
+export ADAPTER_MANIFEST
+
 if [[ "$PLATFORM" == "claude-code" || "$PLATFORM" == "all" ]]; then
     info "Running Claude Code adapter install..."
     adapter="${SCO_HOME}/adapters/claude-code/install.sh"
@@ -251,7 +256,25 @@ if [[ "$PLATFORM" == "openclaw" || "$PLATFORM" == "all" ]]; then
     echo ""
 fi
 
-# ── Step 7: Write manifest ─────────────────────────────────
+# ── Step 7: Merge adapter manifest and write ───────────────
+# Merge adapter items into main manifest
+if [ -f "$ADAPTER_MANIFEST" ]; then
+    adapter_items=$(cat "$ADAPTER_MANIFEST")
+    if [ "$adapter_items" != "[]" ]; then
+        # Parse adapter manifest items and add to MANIFEST_ITEMS
+        while IFS= read -r item; do
+            [ -z "$item" ] && continue
+            MANIFEST_ITEMS+=("$item")
+        done < <(python3 -c "
+import json, sys
+items = json.load(open('${ADAPTER_MANIFEST}'))
+for item in items:
+    print(json.dumps(item))
+")
+    fi
+    rm -f "$ADAPTER_MANIFEST"
+fi
+
 if ! $DRY_RUN; then
     manifest_write
     ok "Install manifest written: ${MANIFEST_FILE}"

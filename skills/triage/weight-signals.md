@@ -81,12 +81,12 @@ Weight = Medium? → P&A if crossing 2+ module boundaries.
 Weight = Heavy?  → P&A required. Define Ports first.
 ```
 
-## Examples from Park's System
+## Example Triage Decisions
 
 | Task | Type | Weight | P&A? | Route |
 |------|------|--------|------|-------|
 | Add cron job for daily data pull | Config | Light | No | MVU |
-| New Twitter collector in park-intel | Feature | Medium | Yes (collector port) | Plan + MVUs |
+| New Twitter collector in data-pipeline | Feature | Medium | Yes (collector port) | Plan + MVUs |
 | Build quant-qual bridge (Phase 1B) | Integration | Heavy | Yes (bridge ports) | P&A + Plan + MVUs |
 | Fix AKShare API response parsing | Bug Fix | Light | No | MVU |
 | Upgrade SQLAlchemy 1.x → 2.x | Migration | Medium | Yes (old→new) | Plan + MVUs |

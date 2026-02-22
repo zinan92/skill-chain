@@ -17,7 +17,7 @@ The CTO function. Before any code is written or any plan is made, every task mus
 NO DECOMPOSITION WITHOUT:
   1. Task type classified (Feature / Bug / Refactor / Integration / Migration / Spike / Config)
   2. Weight assessed with evidence (Light / Medium / Heavy)
-  3. Park approval on the triage report
+  3. Human approval on the triage report
 ```
 
 ## What Is Triage
@@ -123,14 +123,14 @@ Use quantifiable signals, not gut feeling. Run the weight assessment checklist:
 
 Use the template in `./triage-report-template.md`. Fill every field.
 
-### Step 6 — Park Approval
+### Step 6 — Human Approval
 
 Present the triage report. Three possible outcomes:
 
 | Outcome | What Happens |
 |---------|-------------|
 | **Approved** | Proceed to next phase (writing-plans for Medium/Heavy, mvu-execution for Light) |
-| **Override** | Park changes type/weight/strategy. Accept the override, update report. |
+| **Override** | Reviewer changes type/weight/strategy. Accept the override, update report. |
 | **Rejected** | Task needs rethinking. Go back to clarify-intention. |
 
 ## Routing Table — After Triage
@@ -159,7 +159,7 @@ Triage Approved
 - Assessing weight by gut feeling without checking hard signals
 - Classifying as Spike to avoid the rigor of Feature/Refactor
 - Saying "Medium" for everything (the comfortable middle)
-- Not presenting triage to Park for approval
+- Not presenting triage for human approval
 - Decomposing before triage (putting cart before horse)
 - Changing triage after decomposition starts without re-approval
 
@@ -174,7 +174,7 @@ Triage Approved
 | "Triage is overhead for small tasks" | Light triage IS small — 5 fields, 2 minutes. The routing decision alone justifies it. |
 | "It's a bug fix, always Light" | Bug fixes that touch shared code, cross modules, or need schema changes are Medium. Classify, don't assume. |
 | "Let's just start and see" | That's the definition of uncontrolled scope. Triage prevents exactly this. |
-| "Park will just approve anyway" | Park's approval forces you to articulate your reasoning. That's the value. |
+| "The reviewer will just approve anyway" | The approval step forces you to articulate your reasoning. That's the value. |
 
 ## Integration
 

@@ -14,9 +14,9 @@ env:
   EXTRACT_REVIEW: "${SCO_HOME}/core/helpers/extract_review.py"
 
 steps:
-  # Step 1: init — write task to temp file, clean previous workflow state
+  # Step 1: init — write task to isolated temp dir (PID-based to avoid concurrency conflicts)
   - id: init
-    command: "rm -rf /tmp/workflow && mkdir -p /tmp/workflow && python3 -c \"import sys,json; task=sys.stdin.read().strip(); open('/tmp/workflow/task.txt','w').write(task); print(json.dumps({'task':task,'repo':'${repo}'}))\""
+    command: "WFDIR=/tmp/skill-chain-$$-$(date +%s) && rm -rf \"$WFDIR\" && mkdir -p \"$WFDIR\" && python3 -c \"import sys,json; task=sys.stdin.read().strip(); open('${WFDIR}/task.txt','w').write(task); print(json.dumps({'task':task,'repo':'${repo}','workdir':'${WFDIR}'}))\""
     stdin: "${task}"
 
   # Step 2: /triage skill → guard(triage)

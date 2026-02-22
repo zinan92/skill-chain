@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # adapters/claude-code/install.sh — Claude Code specific installation
 # Called by main install.sh, not typically run directly
+# Writes installed items to ADAPTER_MANIFEST (shared with main installer)
 set -euo pipefail
 
 SCO_HOME=""
@@ -16,6 +17,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 SCO_HOME="${SCO_HOME:-$(cd "$(dirname "$0")/../.." && pwd)}"
+ADAPTER_MANIFEST="${ADAPTER_MANIFEST:-/dev/null}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -27,6 +29,19 @@ ok()   { echo -e "${GREEN}[OK]${NC} $*"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 info() { echo -e "${BLUE}[INFO]${NC} $*"; }
 dry()  { echo -e "${YELLOW}[DRY-RUN]${NC} $*"; }
+
+# Record installed item to adapter manifest (for main installer to merge)
+record_item() {
+    local type="$1" src="$2" dst="$3"
+    if [ "$ADAPTER_MANIFEST" != "/dev/null" ] && [ -f "$ADAPTER_MANIFEST" ]; then
+        python3 -c "
+import json
+items = json.load(open('${ADAPTER_MANIFEST}'))
+items.append({'type': '${type}', 'src': '${src}', 'dst': '${dst}'})
+json.dump(items, open('${ADAPTER_MANIFEST}', 'w'))
+"
+    fi
+}
 
 info "Claude Code adapter install"
 
@@ -51,6 +66,7 @@ for subdir in common python typescript; do
             existing=$(readlink "$dst")
             if [ "$existing" = "$rule_file" ]; then
                 ok "Already linked: rules/${subdir}/${fname}"
+                record_item "symlink" "$rule_file" "$dst"
             else
                 warn "Conflict: ${dst} -> ${existing} (skipping)"
             fi
@@ -69,6 +85,7 @@ for subdir in common python typescript; do
                 ln -s "$rule_file" "$dst"
                 ok "Linked: rules/${subdir}/${fname}"
             fi
+            record_item "symlink" "$rule_file" "$dst"
         fi
     done
 done
