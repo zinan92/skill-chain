@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "description": "Skills manifest for skill-chain pipeline",
+  "categories": {
+    "required": {
+      "description": "Pipeline directly invokes these skills",
+      "skills": [
+        "triage",
+        "writing-plans",
+        "mvu-execution",
+        "requesting-code-review",
+        "verification-before-completion"
+      ]
+    },
+    "transitive": {
+      "description": "Referenced by required skills or pipeline support",
+      "skills": [
+        "test-driven-development",
+        "executing-plans",
+        "subagent-driven-development",
+        "finishing-a-development-branch",
+        "using-git-worktrees",
+        "receiving-code-review",
+        "systematic-debugging",
+        "brainstorming",
+        "dispatching-parallel-agents",
+        "writing-skills",
+        "using-superpowers",
+        "find-skills"
+      ]
+    },
+    "optional": {
+      "description": "Framework/language specific - not required for core pipeline",
+      "skills": [
+        "d3-viz",
+        "fastapi-async-patterns",
+        "fastapi-python",
+        "nextjs-app-router-patterns",
+        "tailwindcss-advanced-layouts",
+        "ui-ux-pro-max",
+        "risk-management"
+      ]
+    }
+  },
+  "install_target": "~/.claude/skills/{skill_name}",
+  "install_method": "symlink"
+}

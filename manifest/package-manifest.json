@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "name": "skill-chain",
+  "description": "Portable skill-chain development pipeline for Claude Code and OpenClaw",
+  "dependencies": {
+    "required": {
+      "node": {
+        "min_version": "18.0.0",
+        "check_command": "node --version"
+      },
+      "python3": {
+        "min_version": "3.11.0",
+        "check_command": "python3 --version"
+      },
+      "claude": {
+        "min_version": "1.0.0",
+        "check_command": "claude --version",
+        "install_hint": "npm install -g @anthropic-ai/claude-code"
+      }
+    },
+    "optional": {
+      "lobster": {
+        "min_version": "0.1.0",
+        "check_command": "lobster --version",
+        "install_hint": "npm install -g @openclaw/lobster",
+        "required_for": ["pipeline execution"]
+      },
+      "openclaw": {
+        "min_version": "0.1.0",
+        "check_command": "openclaw --version",
+        "install_hint": "See https://docs.openclaw.ai/install",
+        "required_for": ["openclaw adapter"]
+      },
+      "codex": {
+        "min_version": "0.1.0",
+        "check_command": "codex --version",
+        "install_hint": "npm install -g @openai/codex",
+        "required_for": ["cross-company AI review in dev-pipeline"]
+      }
+    }
+  },
+  "environment_variables": {
+    "SCO_HOME": {
+      "description": "Root directory of skill-chain installation",
+      "default": "~/skill-chain",
+      "required": true
+    },
+    "TARGET_REPO": {
+      "description": "Project repository to run pipeline against",
+      "required": false
+    }
+  }
+}

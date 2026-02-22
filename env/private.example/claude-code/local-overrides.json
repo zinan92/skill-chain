@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy to my/claude-code/local-overrides.json and customize",
+  "env": {},
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": []
+  }
+}
